@@ -1,28 +1,33 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div>
+      <TheDatepicker v-model="state.value" />
+    </div>
+
+    <div>
+       <pre>
+        {{ state.value }}
+      </pre>
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import { TheDatepicker } from './components/Datepicker';
+import { defineProps }   from './components/Datepicker';
 
 export default {
   name: 'App',
+  data() {
+    return {
+      state: {
+        value: new Date(),
+        props: defineProps({})
+      }
+    };
+  },
   components: {
-    HelloWorld
+    TheDatepicker
   }
-}
+};
 </script>
-
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
