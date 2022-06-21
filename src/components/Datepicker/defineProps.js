@@ -1,6 +1,6 @@
 /**
- * @param {import('./types').DatepickerProps} props
- * @returns {import('./types').DatepickerProps}
+ * @param {import('./types').Datepicker.Props} props
+ * @returns {import('./types').Datepicker.Props}
  */
 export function defineProps(props) {
   return props;

@@ -1,7 +1,11 @@
 <template>
   <div id="app">
     <div>
-      <TheDatepicker v-model="state.value" />
+      <TheDatepicker
+          v-model="state.datepicker.value"
+          v-bind="state.datepicker.props"
+          @input="inputHandler"
+      />
     </div>
 
     <div>
@@ -21,10 +25,18 @@ export default {
   data() {
     return {
       state: {
-        value: new Date(),
-        props: defineProps({})
+        datepicker: {
+          value: new Date(),
+          props: defineProps({
+            type: 'date'
+          })
+        }
       }
     };
+  },
+  methods: {
+    inputHandler(...argv) {
+    }
   },
   components: {
     TheDatepicker

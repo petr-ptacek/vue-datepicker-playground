@@ -1,72 +1,96 @@
 <template>
-  <DatePickerComponent
-      v-bind="parsedProps"
-      v-on="parsedListeners"
+  <Vue2DatepickerComponent
+      v-bind="datepickerProps"
+      v-on="datepickerListeners"
       :value="value"
   >
     <template #input="options">
       <input
           ref="input"
-          v-bind="options.props"
-          v-on="options.events"
+          v-bind="parseInputProps(options.props)"
+          v-on="parseInputEvents(options.events)"
       >
     </template>
 
     <template #icon-calendar>
-      <slot name="icon-calendar">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 25 25">
-          <g stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5625050000000003"
-                  d="M22.65625 3.90625H2.34375c-.86294792 0-1.5625.69955208-1.5625 1.5625v17.1875c0 .86291667.69955208 1.5625 1.5625 1.5625h20.3125c.86291667 0 1.5625-.69958333 1.5625-1.5625V5.46875c0-.86294792-.69958333-1.5625-1.5625-1.5625ZM.78125 10.15625h23.4375M7.03125 6.25V.78125M17.96875 6.25V.78125" />
-            <path stroke-width="1.5625050000000003"
-                  d="M5.859375 14.84375c-.21573958 0-.390625-.17489583-.390625-.390625s.17488542-.390625.390625-.390625M5.859375 14.84375c.21573958 0 .390625-.17489583.390625-.390625s-.17488542-.390625-.390625-.390625M5.859375 20.3125c-.21573958 0-.390625-.17489583-.390625-.390625s.17488542-.390625.390625-.390625M5.859375 20.3125c.21573958 0 .390625-.17489583.390625-.390625s-.17488542-.390625-.390625-.390625M12.5 14.84375c-.21572917 0-.390625-.17489583-.390625-.390625s.17489583-.390625.390625-.390625M12.5 14.84375c.21572917 0 .390625-.17489583.390625-.390625S12.71572917 14.0625 12.5 14.0625M12.5 20.3125c-.21572917 0-.390625-.17489583-.390625-.390625s.17489583-.390625.390625-.390625M12.5 20.3125c.21572917 0 .390625-.17489583.390625-.390625s-.17489583-.390625-.390625-.390625M19.140625 14.84375c-.21572917 0-.390625-.17489583-.390625-.390625s.17489583-.390625.390625-.390625M19.140625 14.84375c.21572917 0 .390625-.17489583.390625-.390625s-.17489583-.390625-.390625-.390625" />
-            <g>
-              <path stroke-width="1.5625050000000003"
-                    d="M19.140625 20.3125c-.21572917 0-.390625-.17489583-.390625-.390625s.17489583-.390625.390625-.390625M19.140625 20.3125c.21572917 0 .390625-.17489583.390625-.390625s-.17489583-.390625-.390625-.390625" />
-            </g>
-          </g>
-        </svg>
-      </slot>
+      <slot name="icon-calendar" />
     </template>
 
     <template #icon-clear>
-      <slot name="icon-delete">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25">
-          <g transform="scale(1.04167)">
-            <circle cx="11.998" cy="12" r="11.25" fill="none" stroke="currentColor" stroke-linecap="round"
-                    stroke-linejoin="round" stroke-width="1.5" />
-            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="m7.498 16.5 8.999-9M16.498 16.5l-9.001-9" />
-          </g>
-        </svg>
-      </slot>
+      <slot name="icon-delete" />
     </template>
-  </DatePickerComponent>
+  </Vue2DatepickerComponent>
 </template>
 
 <script>
-import DatePickerComponent from 'vue2-datepicker';
-import { parseProps }      from './utils';
+import Vue2DatepickerComponent           from 'vue2-datepicker';
+import { parseProps, createDateHelpers } from './utils';
+import 'vue2-datepicker/locale/cs';
 
 export default {
   name: 'TheDatepicker',
   props: {
-    ...DatePickerComponent.props
+    ...Vue2DatepickerComponent.props,
+    clearable: {
+      required: false,
+      default: false
+    },
+    lang: {
+      required: false,
+      default: 'cs',
+      type: [Object, String]
+    }
   },
   data() {
     return {
       state: {
         isFocus: false,
-        isOpen: false
+        /** @type {Readonly<import('./types').DatepickerHelpers>} */
+        helpers: createDateHelpers()
       }
     };
   },
+  mounted() {
+    console.dir(this.state);
+  },
   computed: {
-    parsedProps() {
+    /**
+     * @returns {import('./types').Vue2Datepicker.Props}
+     */
+    datepickerProps() {
       const { props } = parseProps(this.$props);
-      return props;
+      return Object.assign(
+          {},
+          props,
+          {
+            formatter: props.formatter ??
+                {
+                  /**
+                   * @param {Date} date
+                   * @returns {string | undefined}
+                   */
+                  stringify: (date) => {
+                    const { stringify, stringifyFocus } = this.state.helpers.formatters ?? {};
+
+                    return this.state.isFocus ?
+                        (stringifyFocus?.(date) ?? undefined) :
+                        (stringify?.(date) ?? undefined);
+                  },
+                  /**
+                   * @param {string|null} value
+                   * @returns {Date | null}
+                   */
+                  parse: (value) => {
+                    return this.state.helpers.formatters?.parse(value) ?? value;
+                  }
+                }
+          }
+      );
     },
-    parsedListeners() {
+    /**
+     * @returns {import('./types').Vue2Datepicker.Events}
+     */
+    datepickerListeners() {
       const { events } = parseProps(this.$props);
 
       return {
@@ -86,7 +110,7 @@ export default {
           this.$emit('pick', value, type);
         },
         /**
-         * @param {FocusEvent} event
+         * @param {MouseEvent} event
          */
         open: (event) => {
           events.open?.(event);
@@ -103,6 +127,10 @@ export default {
          * @param {FocusEvent|MouseEvent} event
          **/
         focus: (event) => {
+          if ( this.editable ) {
+            this.state.isFocus = true;
+          }
+
           events.focus?.(event);
           this.$emit('focus', event);
         },
@@ -110,6 +138,10 @@ export default {
          * @param {FocusEvent} event
          **/
         blur: (event) => {
+          if ( this.editable ) {
+            this.state.isFocus = false;
+          }
+
           events.blur?.(event);
           this.$emit('blur', event);
         },
@@ -117,8 +149,8 @@ export default {
          * @param {Date} value
          * @param {any} type
          */
-        change(value, type) {
-          events.change(value, type);
+        change: (value, type) => {
+          events.change?.(value, type);
           this.$emit('change', value, type);
         },
         /**
@@ -129,16 +161,16 @@ export default {
           this.$emit('confirm', date);
         },
         /**
-         * @param {MouseEvent} event
+         * @returns {void}
          */
-        clear: (event) => {
-          events.clear?.(event);
-          this.$emit('clear', event);
+        clear: () => {
+          events.clear?.();
+          this.$emit('clear');
         },
         /**
          * @param {string} value
          */
-        'input-error'(value) {
+        inputError: (value) => {
           events.inputError?.(value);
           this.$emit('input-error', value);
         },
@@ -146,7 +178,7 @@ export default {
          * @param type
          * @param oldType
          */
-        'panel-change'(type, oldType) {
+        panelChange: (type, oldType) => {
           events.panelChange?.(type, oldType);
           this.$emit('panel-change', type, oldType);
         },
@@ -155,15 +187,57 @@ export default {
          * @param oldDate
          * @param type
          */
-        'calendar-change'(date, oldDate, type) {
+        calendarChange: (date, oldDate, type) => {
           events.calendarChange?.(date, oldDate, type);
           this.$emit('calendar-change', date, oldDate, type);
         }
       };
     }
   },
+  methods: {
+    /**
+     * @param {Record<string,*>} props
+     * @returns {Record<string,*>}
+     *
+     */
+    parseInputProps(props) {
+      return Object.assign(
+          {},
+          props,
+          {
+            value: this.state.helpers.formatters?.inputValue?.(props.value) ?? props.value
+          }
+      );
+    },
+    /**
+     * @param {Record<string,*>} events
+     * @returns {Record<string,*>}
+     */
+    parseInputEvents(events) {
+      return Object.assign(
+          {},
+          events,
+          {
+            /**
+             * @param {KeyboardEvent} event
+             * @returns {void}
+             */
+            keydown: (event) => {
+              this.state.helpers.handlers?.inputKeydown?.(event, events?.keydown);
+            },
+            /**
+             * @param {InputEvent} event
+             * @returns {void}
+             */
+            input: (event) => {
+              this.state.helpers.handlers?.inputInput?.(event, events?.input);
+            }
+          }
+      );
+    }
+  },
   components: {
-    DatePickerComponent
+    Vue2DatepickerComponent
   }
 };
 </script>

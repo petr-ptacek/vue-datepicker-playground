@@ -1,11 +1,11 @@
-export interface Vue2DatePickerProps {
+export interface Props {
   type?: 'date' | 'datetime' | 'year' | 'month' | 'time' | 'week';
   range?: boolean;
   format?: TokenString;
-  formatter?: object;
+  formatter?: FormatterOptions;
   valueType?: 'date' | 'timestamp' | 'format' | TokenString;
   defaultValue?: Date;
-  lang?: object;
+  lang?: object | string;
   placeholder?: string;
   editable?: boolean;
   clearable?: boolean;
@@ -48,9 +48,42 @@ export interface Vue2DatePickerProps {
 // https://github.com/mengxiong10/vue2-datepicker#token
 export type TokenString = string;
 
+export type FormatterOptions = {
+  stringify?: (date: Date) => string;
+  parse?: (value: string | null) => Date | null;
+  getWeek?: (date: Date) => number;
+}
+
 export type TimePickerOptions = {
   start: string;
   step: string;
   end: string;
   format: string;
+}
+
+export interface Events {
+  input?: (value: Date) => void;
+  change?: (value: Date, type?: 'date' | 'hour' | 'minute' | 'second' | 'am' | 'pm') => void;
+  open?: (event: MouseEvent) => void;
+  close?: () => void;
+  confirm?: (date: Date) => void;
+  clear?: () => void;
+  inputError?: (value?: string) => void;
+  focus?: (event: MouseEvent | FocusEvent) => void;
+  blur?: (event: FocusEvent) => void;
+  pick?: (value: Date, type?: string) => void;
+  calendarChange?: (
+      date: Date,
+      oldDate: Date,
+      type:
+          'year' |
+          'month' |
+          'last-year' |
+          'next-year' |
+          'last-month' |
+          'next-month' |
+          'last-decade' |
+          'next-decade'
+  ) => void;
+  panelChange?: (type: 'year' | 'month' | 'date', oldType: 'year' | 'month' | 'date') => void;
 }
